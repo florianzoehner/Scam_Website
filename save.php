@@ -24,7 +24,11 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL) || !$endetAufDomain) {
     exit;
 }
 
-$datei = __DIR__ . '/anmeldungen.csv';
+$ordner = __DIR__ . '/anmeldungen';
+if (!is_dir($ordner)) {
+    @mkdir($ordner, 0775, true);
+}
+$datei = $ordner . '/anmeldungen.csv';
 $neu = !file_exists($datei);
 
 // Passwort wird bewusst NICHT uebernommen

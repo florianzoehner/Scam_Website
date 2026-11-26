@@ -14,8 +14,9 @@ import json
 import os
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-ORDNER   = os.path.dirname(os.path.abspath(__file__))
-CSV_DATEI = os.path.join(ORDNER, "anmeldungen.csv")
+ORDNER         = os.path.dirname(os.path.abspath(__file__))
+SPEICHERORDNER = os.path.join(ORDNER, "anmeldungen")  # eigener Ordner fuer die Daten
+CSV_DATEI      = os.path.join(SPEICHERORDNER, "anmeldungen.csv")
 # Passwort wird bewusst NICHT gespeichert (Awareness-Demo, kein Diebstahl)
 SPALTEN  = ["zeitstempel", "email", "rolle", "klasse"]
 KOPF     = ["Zeitstempel", "E-Mail", "Rolle", "Klasse"]
@@ -29,6 +30,7 @@ def email_gueltig(daten):
 
 
 def anmeldung_speichern(daten):
+    os.makedirs(SPEICHERORDNER, exist_ok=True)  # Ordner anlegen, falls noch nicht vorhanden
     neu = not os.path.exists(CSV_DATEI)
     # utf-8-sig -> Excel zeigt Umlaute korrekt; Semikolon -> deutsche Excel-Spalten
     with open(CSV_DATEI, "a", newline="", encoding="utf-8-sig") as f:
