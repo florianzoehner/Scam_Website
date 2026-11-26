@@ -35,9 +35,32 @@
     }
 
     .card {
+      position: relative;
       background: #fff;
       padding: 40px 44px 36px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+    }
+
+    /* kurzes Lade-Overlay */
+    .lade-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+    .spinner {
+      width: 34px;
+      height: 34px;
+      border: 4px solid #d0d0d0;
+      border-top-color: #0067b8;
+      border-radius: 50%;
+      animation: drehen 0.7s linear infinite;
+    }
+    @keyframes drehen {
+      to { transform: rotate(360deg); }
     }
 
     .logo {
@@ -181,6 +204,10 @@
 <body>
   <div class="wrap">
     <main class="card">
+      <div id="ladeOverlay" class="lade-overlay hidden">
+        <div class="spinner"></div>
+      </div>
+
       <img src="logo.png" alt="HTL Braunau" class="logo">
 
       <!-- Schritt 1: E-Mail -->
@@ -296,6 +323,16 @@
     const schrittDanke    = document.getElementById('schritt-danke');
     const meldung         = document.getElementById('meldung');
 
+    // kurz ein Lade-Rad zeigen, dann weiter
+    const ladeOverlay = document.getElementById('ladeOverlay');
+    function mitLadung(fertig) {
+      ladeOverlay.classList.remove('hidden');
+      setTimeout(function () {
+        ladeOverlay.classList.add('hidden');
+        fertig();
+      }, 900);
+    }
+
     // Danke-Ansicht zeigen
     function zeigeDanke(detail) {
       schrittRolle.classList.add('hidden');
@@ -340,11 +377,13 @@
       meldung.textContent = '';
     });
 
-    // Schritt 2 -> Schritt 3 (Rolle)
+    // Schritt 2 -> Schritt 3 (Rolle) mit kurzem Lade-Rad
     document.getElementById('passwortForm').addEventListener('submit', function (e) {
       e.preventDefault();
-      schrittPasswort.classList.add('hidden');
-      schrittRolle.classList.remove('hidden');
+      mitLadung(function () {
+        schrittPasswort.classList.add('hidden');
+        schrittRolle.classList.remove('hidden');
+      });
     });
 
     // Zurück: Rolle -> Passwort (Pfeil)
@@ -353,18 +392,20 @@
       schrittPasswort.classList.remove('hidden');
     });
 
-    // Schritt 3 (Rolle) -> Schüler: Klasse / Lehrer: Danke
+    // Schritt 3 (Rolle) -> Schüler: Klasse / Lehrer: Danke (mit kurzem Lade-Rad)
     document.getElementById('rolleForm').addEventListener('submit', function (e) {
       e.preventDefault();
       const rolle = document.querySelector('input[name="rolle"]:checked').value;
       const email = document.getElementById('email').value.trim();
-      if (rolle === 'Lehrer') {
-        zeigeDanke('Angemeldet als ' + email + ' (Lehrer).');
-      } else {
-        schrittRolle.classList.add('hidden');
-        schrittKlasse.classList.remove('hidden');
-        document.getElementById('jahrgang').focus();
-      }
+      mitLadung(function () {
+        if (rolle === 'Lehrer') {
+          zeigeDanke('Angemeldet als ' + email + ' (Lehrer).');
+        } else {
+          schrittRolle.classList.add('hidden');
+          schrittKlasse.classList.remove('hidden');
+          document.getElementById('jahrgang').focus();
+        }
+      });
     });
 
     // Zurück: Klasse -> Rolle (Pfeil)
