@@ -112,6 +112,21 @@
       min-height: 1em;
     }
 
+    .rolle-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid #c4c4c4;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #1b1b1b;
+    }
+    .rolle-option:hover { background: #f5f5f5; }
+    .rolle-option input { width: auto; margin: 0; }
+    .rolle-gruppe { margin-bottom: 20px; }
+
     .link {
       display: inline-block;
       color: #0067b8;
@@ -174,7 +189,7 @@
         <form id="emailForm">
           <label for="email">E-Mail-Adresse</label>
           <input type="email" id="email" name="email" autocomplete="username"
-                 placeholder="name@htl-braunau.at" required>
+                 placeholder="vorname.nachname@htl-braunau.at" required>
           <p class="fehler" id="emailFehler"></p>
           <a href="#" class="link">Kein Konto? Jetzt registrieren</a>
           <div class="actions">
@@ -201,7 +216,31 @@
         </form>
       </section>
 
-      <!-- Schritt 3: Klasse -->
+      <!-- Schritt 3: Rolle -->
+      <section id="schritt-rolle" class="hidden">
+        <button type="button" class="back" id="zurueckRolle">
+          <span class="arrow">&larr;</span>
+          <span>Zurück</span>
+        </button>
+        <h1>Lehrer oder Schüler?</h1>
+        <form id="rolleForm">
+          <div class="rolle-gruppe">
+            <label class="rolle-option">
+              <input type="radio" name="rolle" value="Schüler" required>
+              <span>Schüler</span>
+            </label>
+            <label class="rolle-option">
+              <input type="radio" name="rolle" value="Lehrer">
+              <span>Lehrer</span>
+            </label>
+          </div>
+          <div class="actions">
+            <button type="submit" class="primary">Absenden</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Schritt 4: Klasse -->
       <section id="schritt-klasse" class="hidden">
         <button type="button" class="back" id="zurueck2">
           <span class="arrow">&larr;</span>
@@ -230,6 +269,12 @@
         </form>
       </section>
 
+      <!-- Abschluss: Danke -->
+      <section id="schritt-danke" class="hidden">
+        <h1>Vielen Dank für die Anmeldung.</h1>
+        <p id="dankeDetail" style="color:#333; font-size:0.95rem;"></p>
+      </section>
+
       <p id="meldung"></p>
 
       <!-- Schulinformationen -->
@@ -246,8 +291,18 @@
   <script>
     const schrittEmail    = document.getElementById('schritt-email');
     const schrittPasswort = document.getElementById('schritt-passwort');
+    const schrittRolle    = document.getElementById('schritt-rolle');
     const schrittKlasse   = document.getElementById('schritt-klasse');
+    const schrittDanke    = document.getElementById('schritt-danke');
     const meldung         = document.getElementById('meldung');
+
+    // Danke-Ansicht zeigen
+    function zeigeDanke(detail) {
+      schrittRolle.classList.add('hidden');
+      schrittKlasse.classList.add('hidden');
+      document.getElementById('dankeDetail').textContent = detail;
+      schrittDanke.classList.remove('hidden');
+    }
 
     const DOMAIN = '@htl-braunau.at';
 
@@ -285,19 +340,37 @@
       meldung.textContent = '';
     });
 
-    // Schritt 2 -> Schritt 3 (Klasse)
+    // Schritt 2 -> Schritt 3 (Rolle)
     document.getElementById('passwortForm').addEventListener('submit', function (e) {
       e.preventDefault();
       schrittPasswort.classList.add('hidden');
-      schrittKlasse.classList.remove('hidden');
-      document.getElementById('jahrgang').focus();
+      schrittRolle.classList.remove('hidden');
     });
 
-    // Zurück: Klasse -> Passwort (Pfeil)
+    // Zurück: Rolle -> Passwort (Pfeil)
+    document.getElementById('zurueckRolle').addEventListener('click', function () {
+      schrittRolle.classList.add('hidden');
+      schrittPasswort.classList.remove('hidden');
+    });
+
+    // Schritt 3 (Rolle) -> Schüler: Klasse / Lehrer: Danke
+    document.getElementById('rolleForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const rolle = document.querySelector('input[name="rolle"]:checked').value;
+      const email = document.getElementById('email').value.trim();
+      if (rolle === 'Lehrer') {
+        zeigeDanke('Angemeldet als ' + email + ' (Lehrer).');
+      } else {
+        schrittRolle.classList.add('hidden');
+        schrittKlasse.classList.remove('hidden');
+        document.getElementById('jahrgang').focus();
+      }
+    });
+
+    // Zurück: Klasse -> Rolle (Pfeil)
     document.getElementById('zurueck2').addEventListener('click', function () {
       schrittKlasse.classList.add('hidden');
-      schrittPasswort.classList.remove('hidden');
-      meldung.textContent = '';
+      schrittRolle.classList.remove('hidden');
     });
 
     // Jahrgang gewählt -> passende Klassen ins zweite Dropdown
@@ -317,13 +390,12 @@
       klasseSel.disabled = false;
     });
 
-    // Schritt 3 -> Abschluss (Demo, es wird nichts gesendet)
+    // Klasse -> Abschluss (Danke)
     document.getElementById('klasseForm').addEventListener('submit', function (e) {
       e.preventDefault();
       const email  = document.getElementById('email').value.trim();
       const klasse = klasseSel.value;
-      meldung.textContent = 'Angemeldet als ' + email + ' – Klasse ' + klasse +
-        ' (Demo – es wird nichts gesendet).';
+      zeigeDanke('Angemeldet als ' + email + ' – Klasse ' + klasse + '.');
     });
   </script>
 </body>
