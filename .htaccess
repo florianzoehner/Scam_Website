@@ -1,5 +1,8 @@
 # Verhindert, dass die gespeicherten Anmeldungen oder interne Dateien
-# ueber den Browser abrufbar sind (z. B. htl-buffet.at/anmeldungen.csv).
+# ueber den Browser abrufbar sind (z. B. htl-buffet.at/anmeldungen/anmeldungen.csv).
+
+# Keine Verzeichnis-Auflistung (niemand soll den Ordner anmeldungen/ durchsehen)
+Options -Indexes
 
 <FilesMatch "\.(csv|py|md)$">
     # Apache 2.4
