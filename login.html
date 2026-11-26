@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anmelden</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      /* Foto als Vollbild-Hintergrund */
+      background: url("hintergrund.jpg") center / cover no-repeat fixed;
+      position: relative;
+      overflow: hidden;
+    }
+    /* dezente Abdunkelung, damit die Karte gut lesbar bleibt */
+    body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      pointer-events: none;
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .card {
+      background: #fff;
+      padding: 40px 44px 36px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+    }
+
+    .logo {
+      display: block;
+      width: 92px;
+      height: auto;
+      margin-bottom: 26px;
+    }
+
+    .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: none;
+      padding: 0;
+      margin-bottom: 18px;
+      font-size: 0.95rem;
+      color: #1b1b1b;
+      cursor: pointer;
+    }
+    .back:hover { text-decoration: underline; }
+    .back .arrow { font-size: 1.1rem; line-height: 1; }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #1b1b1b;
+      margin: 0 0 22px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      color: #1b1b1b;
+      margin-bottom: 4px;
+    }
+    input {
+      width: 100%;
+      padding: 8px 2px;
+      border: none;
+      border-bottom: 1px solid #666;
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+    input:focus {
+      outline: none;
+      border-bottom: 2px solid #0067b8;
+    }
+
+    select {
+      width: 100%;
+      padding: 9px 4px;
+      border: 1px solid #666;
+      background: #fff;
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+    select:focus {
+      outline: none;
+      border-color: #0067b8;
+    }
+    select:disabled {
+      color: #999;
+      background: #f3f3f3;
+    }
+
+    .fehler {
+      color: #a80000;
+      font-size: 0.85rem;
+      margin: -12px 0 18px;
+      min-height: 1em;
+    }
+
+    .link {
+      display: inline-block;
+      color: #0067b8;
+      font-size: 0.9rem;
+      text-decoration: none;
+      margin: 0 0 24px;
+    }
+    .link:hover { text-decoration: underline; }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+    button.primary {
+      min-width: 108px;
+      padding: 9px 14px;
+      border: none;
+      background: #0067b8;
+      color: #fff;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+    button.primary:hover { background: #005aa3; }
+
+    .hidden { display: none; }
+
+    #meldung {
+      margin-top: 16px;
+      font-size: 0.9rem;
+      color: #107c10;
+      min-height: 1.2em;
+    }
+
+    /* Infobereich der Schule – Teil derselben Karte */
+    .info {
+      margin: 32px -44px -36px;
+      background: #e4e4e4;
+      border-top: 1px solid #cccccc;
+      padding: 22px 44px;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: #333;
+    }
+    .info strong {
+      display: block;
+      font-size: 0.95rem;
+      color: #1b1b1b;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <main class="card">
+      <img src="logo.png" alt="HTL Braunau" class="logo">
+
+      <!-- Schritt 1: E-Mail -->
+      <section id="schritt-email">
+        <h1>Anmelden</h1>
+        <form id="emailForm">
+          <label for="email">E-Mail-Adresse</label>
+          <input type="email" id="email" name="email" autocomplete="username"
+                 placeholder="name@htl-braunau.at" required>
+          <p class="fehler" id="emailFehler"></p>
+          <a href="#" class="link">Kein Konto? Jetzt registrieren</a>
+          <div class="actions">
+            <button type="submit" class="primary">Weiter</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Schritt 2: Passwort -->
+      <section id="schritt-passwort" class="hidden">
+        <button type="button" class="back" id="zurueck">
+          <span class="arrow">&larr;</span>
+          <span id="angezeigteEmail"></span>
+        </button>
+        <h1>Kennwort eingeben</h1>
+        <form id="passwortForm">
+          <label for="passwort">Kennwort</label>
+          <input type="password" id="passwort" name="passwort"
+                 autocomplete="current-password" placeholder="Kennwort" required>
+          <a href="#" class="link">Kennwort vergessen?</a>
+          <div class="actions">
+            <button type="submit" class="primary">Anmelden</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Schritt 3: Klasse -->
+      <section id="schritt-klasse" class="hidden">
+        <button type="button" class="back" id="zurueck2">
+          <span class="arrow">&larr;</span>
+          <span>Zurück</span>
+        </button>
+        <h1>Wähle deine Klasse aus</h1>
+        <form id="klasseForm">
+          <label for="jahrgang">Jahrgang</label>
+          <select id="jahrgang" required>
+            <option value="" selected disabled>Bitte wählen</option>
+            <option value="1">1. Klasse</option>
+            <option value="2">2. Klasse</option>
+            <option value="3">3. Klasse</option>
+            <option value="4">4. Klasse</option>
+            <option value="5">5. Klasse</option>
+          </select>
+
+          <label for="klasse">Klasse</label>
+          <select id="klasse" required disabled>
+            <option value="" selected disabled>Zuerst Jahrgang wählen</option>
+          </select>
+
+          <div class="actions">
+            <button type="submit" class="primary">Bestätigen</button>
+          </div>
+        </form>
+      </section>
+
+      <p id="meldung"></p>
+
+      <!-- Schulinformationen -->
+      <aside class="info">
+        <strong>HTBLA Braunau am Inn</strong>
+        Osternbergerstraße 55<br>
+        A-5280 Braunau am Inn<br>
+        +43 (0)7722 / 83690 &ndash; 0<br>
+        office@htl-braunau.at
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const schrittEmail    = document.getElementById('schritt-email');
+    const schrittPasswort = document.getElementById('schritt-passwort');
+    const schrittKlasse   = document.getElementById('schritt-klasse');
+    const meldung         = document.getElementById('meldung');
+
+    const DOMAIN = '@htl-braunau.at';
+
+    // Klassen je Jahrgang
+    const KLASSEN = {
+      '1': ['1AFELC', '1AHELS', '1AHETS', '1AHITS', '1AHME', '1BHELS', '1BHME'],
+      '2': ['2AFELC', '2AHELS', '2AHETS', '2AHITS', '2AHME', '2BHELS', '2CHELS'],
+      '3': ['3AFELC', '3AHELS', '3AHET', '3AHITS', '3AHME', '3BHELS', '3BHME', '3CHELS'],
+      '4': ['4AFELC', '4AHELS', '4AHET', '4AHITS', '4AHME', '4BHELS', '4CHELS'],
+      '5': ['5AHELS', '5AHET', '5AHITS', '5AHME', '5BHELS', '5BHME', '5CHELS']
+    };
+
+    // Schritt 1 -> Schritt 2 (nur mit gültiger HTL-Adresse)
+    document.getElementById('emailForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const fehler = document.getElementById('emailFehler');
+
+      if (!email.toLowerCase().endsWith(DOMAIN)) {
+        fehler.textContent = 'Bitte eine Adresse mit ' + DOMAIN + ' verwenden.';
+        return;
+      }
+      fehler.textContent = '';
+
+      document.getElementById('angezeigteEmail').textContent = email;
+      schrittEmail.classList.add('hidden');
+      schrittPasswort.classList.remove('hidden');
+      document.getElementById('passwort').focus();
+    });
+
+    // Zurück: Passwort -> E-Mail (Pfeil)
+    document.getElementById('zurueck').addEventListener('click', function () {
+      schrittPasswort.classList.add('hidden');
+      schrittEmail.classList.remove('hidden');
+      meldung.textContent = '';
+    });
+
+    // Schritt 2 -> Schritt 3 (Klasse)
+    document.getElementById('passwortForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      schrittPasswort.classList.add('hidden');
+      schrittKlasse.classList.remove('hidden');
+      document.getElementById('jahrgang').focus();
+    });
+
+    // Zurück: Klasse -> Passwort (Pfeil)
+    document.getElementById('zurueck2').addEventListener('click', function () {
+      schrittKlasse.classList.add('hidden');
+      schrittPasswort.classList.remove('hidden');
+      meldung.textContent = '';
+    });
+
+    // Jahrgang gewählt -> passende Klassen ins zweite Dropdown
+    const jahrgangSel = document.getElementById('jahrgang');
+    const klasseSel   = document.getElementById('klasse');
+
+    jahrgangSel.addEventListener('change', function () {
+      const liste = KLASSEN[this.value] || [];
+      klasseSel.innerHTML = '<option value="" selected disabled>Bitte wählen</option>';
+      liste.forEach(function (name) {
+        const kurz = name.replace(/^\d+/, ''); // führende Jahrgangszahl entfernen, z. B. 2AHITS -> AHITS
+        const opt = document.createElement('option');
+        opt.value = kurz;
+        opt.textContent = kurz;
+        klasseSel.appendChild(opt);
+      });
+      klasseSel.disabled = false;
+    });
+
+    // Schritt 3 -> Abschluss (Demo, es wird nichts gesendet)
+    document.getElementById('klasseForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const email  = document.getElementById('email').value.trim();
+      const klasse = klasseSel.value;
+      meldung.textContent = 'Angemeldet als ' + email + ' – Klasse ' + klasse +
+        ' (Demo – es wird nichts gesendet).';
+    });
+  </script>
+</body>
+</html>
