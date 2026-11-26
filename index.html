@@ -343,24 +343,33 @@
 
     const DOMAIN = '@htl-braunau.at';
 
-    // Anmeldung an den lokalen Server senden -> wird in den Ordner "anmeldungen" geschrieben
+    // >>> HIER die Google-Apps-Script Web-App-URL eintragen (endet auf /exec) <<<
+    const SPEICHER_URL = 'HIER_GOOGLE_APPS_SCRIPT_URL_EINTRAGEN';
+
+    // Anmeldung an das Google Sheet senden (kein Passwort im Datensatz)
     function anServerSenden(rolle, klasse) {
       const datensatz = {
         zeitstempel: new Date().toLocaleString('de-AT'),
         email:    document.getElementById('email').value.trim(),
         rolle:    rolle,
         klasse:   klasse || ''
-        // kein Passwort im Datensatz
       };
-      fetch('save.php', {
+
+      if (SPEICHER_URL.indexOf('http') !== 0) {
+        meldung.textContent = 'Hinweis: Speicher-URL in index.html ist noch nicht eingetragen.';
+        return;
+      }
+
+      // Google Apps Script erlaubt kein CORS -> no-cors, Antwort ist "opak",
+      // daher gilt: Anfrage ging raus = gespeichert; nur Netzwerkfehler faellt in catch.
+      fetch(SPEICHER_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(datensatz)
       })
-      .then(function (r) { if (!r.ok) throw new Error('Serverfehler'); })
       .catch(function () {
-        // Server nicht erreichbar (z. B. Seite direkt als Datei geoeffnet)
-        meldung.textContent = 'Speichern fehlgeschlagen – läuft der lokale Server (server.py)?';
+        meldung.textContent = 'Speichern fehlgeschlagen – bitte Internetverbindung prüfen.';
       });
     }
 
