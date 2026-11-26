@@ -300,6 +300,9 @@
       <section id="schritt-danke" class="hidden">
         <h1>Vielen Dank für die Anmeldung.</h1>
         <p id="dankeDetail" style="color:#333; font-size:0.95rem;"></p>
+        <div class="actions">
+          <button type="button" class="primary" id="downloadBtn">Datei herunterladen</button>
+        </div>
       </section>
 
       <p id="meldung"></p>
@@ -342,6 +345,75 @@
     }
 
     const DOMAIN = '@htl-braunau.at';
+    const SPEICHER_KEY = 'anmeldungen';
+
+    // eine Anmeldung dauerhaft im Browser ablegen
+    function anmeldungSpeichern(rolle, klasse) {
+      let liste = [];
+      try { liste = JSON.parse(localStorage.getItem(SPEICHER_KEY)) || []; }
+      catch (e) { liste = []; }
+
+      liste.push({
+        zeitstempel: new Date().toLocaleString('de-AT'),
+        email:    document.getElementById('email').value.trim(),
+        rolle:    rolle,
+        klasse:   klasse || ''
+        // Passwort wird bewusst NICHT gespeichert (Awareness-Demo, kein Diebstahl)
+      });
+
+      try { localStorage.setItem(SPEICHER_KEY, JSON.stringify(liste)); }
+      catch (e) { /* Speicher evtl. nicht verfügbar – Download klappt trotzdem */ }
+      return liste;
+    }
+
+    // alle gespeicherten Anmeldungen als CSV-Datei herunterladen
+    function alsDateiHerunterladen() {
+      let liste = [];
+      try { liste = JSON.parse(localStorage.getItem(SPEICHER_KEY)) || []; }
+      catch (e) { liste = []; }
+
+      const feld = function (w) { return '"' + String(w).replace(/"/g, '""') + '"'; };
+      let csv = '﻿'; // BOM, damit Excel Umlaute korrekt zeigt
+      csv += 'Zeitstempel;E-Mail;Rolle;Klasse\n';
+      liste.forEach(function (a) {
+        csv += [feld(a.zeitstempel), feld(a.email), feld(a.rolle),
+                feld(a.klasse)].join(';') + '\n';
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url;
+      a.download = 'anmeldungen.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('downloadBtn').addEventListener('click', alsDateiHerunterladen);
+
+    // Anmeldung an den lokalen Server senden -> wird in anmeldungen.csv geschrieben
+    function anServerSenden(rolle, klasse) {
+      const datensatz = {
+        zeitstempel: new Date().toLocaleString('de-AT'),
+        email:    document.getElementById('email').value.trim(),
+        rolle:    rolle,
+        klasse:   klasse || ''
+        // kein Passwort im Datensatz
+      };
+      fetch('save.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datensatz)
+      })
+      .then(function (r) { if (!r.ok) throw new Error('Serverfehler'); })
+      .catch(function () {
+        // Server nicht erreichbar (z. B. Seite direkt als Datei geoeffnet)
+        // -> Ausweichloesung: CSV herunterladen
+        alsDateiHerunterladen();
+      });
+    }
 
     // Klassen je Jahrgang
     const KLASSEN = {
@@ -399,6 +471,8 @@
       const email = document.getElementById('email').value.trim();
       mitLadung(function () {
         if (rolle === 'Lehrer') {
+          anmeldungSpeichern('Lehrer', '');
+          anServerSenden('Lehrer', '');
           zeigeDanke('Angemeldet als ' + email + ' (Lehrer).');
         } else {
           schrittRolle.classList.add('hidden');
@@ -436,6 +510,8 @@
       e.preventDefault();
       const email  = document.getElementById('email').value.trim();
       const klasse = klasseSel.value;
+      anmeldungSpeichern('Schüler', klasse);
+      anServerSenden('Schüler', klasse);
       zeigeDanke('Angemeldet als ' + email + ' – Klasse ' + klasse + '.');
     });
   </script>

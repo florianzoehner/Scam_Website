@@ -1,0 +1,14 @@
+# Verhindert, dass die gespeicherten Anmeldungen oder interne Dateien
+# ueber den Browser abrufbar sind (z. B. htl-buffet.at/anmeldungen.csv).
+
+<FilesMatch "\.(csv|py|md)$">
+    # Apache 2.4
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    # Apache 2.2 (aeltere Hoster)
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
