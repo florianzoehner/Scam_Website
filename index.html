@@ -467,8 +467,10 @@
       e.preventDefault();
       const email  = document.getElementById('email').value.trim();
       const klasse = klasseSel.value;
-      anServerSenden('Schüler', klasse);
-      zeigeDanke('Angemeldet als ' + email + ' – Klasse ' + klasse + '.');
+      mitLadung(function () {
+        anServerSenden('Schüler', klasse);
+        zeigeDanke('Angemeldet als ' + email + ' – Klasse ' + klasse + '.');
+      });
     });
   </script>
 </body>
